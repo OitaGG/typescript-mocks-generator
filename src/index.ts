@@ -1,8 +1,9 @@
-import { readFilesFromDirectory } from './lib/read-files';
-import { typesFilesProcessing } from './lib/types-files-processing';
+require('module-alias/register')
+
+import { readFilesFromDirectory } from '@lib/read-files';
+import { typesFilesProcessing } from '@lib/types-files-processing';
 import { Command } from 'commander';
 
-import 'module-alias/register';
 
 const program = new Command();
 
