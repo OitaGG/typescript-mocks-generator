@@ -1,0 +1,49 @@
+{
+  "name": "mocks-generator",
+  "version": "1.0.0",
+  "description": "Generate mocks from typescript files with types",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "npx tsc",
+    "watch": "npx tsc -w -p tsconfig.json",
+    "test-run": "node dist/src/index.js --input ./test-data --output ./mocks"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OitaGG/mocks-generator.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/OitaGG/mocks-generator/issues"
+  },
+  "_moduleAliases": {
+    "@root": "dist/src",
+    "@lib": "dist/src/lib",
+    "@templates": "dist/src/templates"
+  },
+  "homepage": "https://github.com/OitaGG/mocks-generator#readme",
+  "devDependencies": {
+    "@trivago/prettier-plugin-sort-imports": "^4.2.0",
+    "@types/node": "^20.4.2",
+    "clean-webpack-plugin": "^4.0.0",
+    "copy-webpack-plugin": "^11.0.0",
+    "eslint-plugin-prettier": "^5.0.1",
+    "prettier": "^3.0.0",
+    "ts-loader": "^9.4.4",
+    "ts-node": "^10.9.1",
+    "tslint": "^6.1.3",
+    "typescript": "^5.1.6",
+    "webpack": "^5.88.1",
+    "webpack-cli": "^5.1.4",
+    "webpack-dev-server": "^4.15.1",
+    "webpack-merge": "^5.9.0"
+  },
+  "dependencies": {
+    "@ngneat/falso": "^6.4.0",
+    "commander": "^11.0.0",
+    "handlebars": "^4.7.8",
+    "module-alias": "^2.2.3"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false,
+    "baseUrl": "src",
+    "types": ["node"],
+    "declaration": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "lib": ["es2020"],
+    "moduleResolution": "node",
+    "importHelpers": false,
+    "module": "commonjs",
+    "noEmitOnError": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitReturns": true,
+    "outDir": "dist",
+    "pretty": true,
+    "rootDir": ".",
+    "sourceMap": true,
+    "strict": true,
+    "target": "es2016",
+    "paths": {
+      "@root/*": ["./*"],
+      "@lib/*": ["./lib/*"],
+      "@templates/*": ["./templates/*"]
+    }
+  },
+  "include": ["src"],
+  "exclude": ["node_modules"]
+}

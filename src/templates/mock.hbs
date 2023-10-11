@@ -1,0 +1,26 @@
+import falso from '@ngneat/falso';
+
+{{!-- Импорт основной DTO --}}
+// Импортируем основное DTO
+import type { {{{typeFileName}}} } from '{{{pathToTypeFile}}}';
+
+{{!-- Импорт генераторов --}}
+{{#if hasImports}}
+    // Импортируем генераторы, вложенные в это DTO
+    {{#each generatorsImports}}
+        import { generator as $generator{{{this.aliasName}}} } from '{{{this.path}}}';
+    {{/each}}
+{{/if}}
+
+
+// Моковый гененратор для {{{typeFileName}}}
+const generateOne = (body?: Partial<{{{typeFileName}}}>): {{{typeFileName}}} => ({
+{{#each declarations}}
+    {{{this.name}}}: {{{this.value}}},
+{{/each}}
+...(body ? body : {})
+} as {{{typeFileName}}});
+
+export const generator = {
+    generateOne,
+};
