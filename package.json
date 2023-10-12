@@ -1,5 +1,5 @@
 {
-  "name": "mocks-generator",
+  "name": "typescript-mocks-generator",
   "version": "1.0.0",
   "description": "Generate mocks from typescript files with types",
   "main": "./dist/index.js",

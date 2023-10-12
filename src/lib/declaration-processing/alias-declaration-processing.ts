@@ -4,38 +4,13 @@ import { isNodeWithJSDoc } from '@root/guards';
 import { NodeWithDocs, Types } from '@root/types';
 
 import { isAnySuppportedJsDocs, isOptionalProperty } from '@lib/checkers';
+import { CommonDeclarationProcessingParams } from '@lib/declaration-processing/types';
 import { processArrayPropertyType } from '@lib/property-processing/process-array-property-type';
 import { processGenericPropertyType } from '@lib/property-processing/process-generic-property-type';
 import { processPropertyTypeReference } from '@lib/property-processing/process-type-reference-property-type';
 import { processUnionPropertyType } from '@lib/property-processing/process-union-property-type';
 import { generatePrimitive } from '@lib/utils/falso-generators';
 import { extractTagValue, findSupportedJSDocTags } from '@lib/utils/js-doc-helpers';
-
-/**
- * Параметры хелпера обработки определения типов
- */
-type AliasDeclarationProcessingParams = {
-  /**
-   * Наименование определения типа
-   */
-  aliasName?: string;
-  /**
-   * Узел AST-дерева файла
-   */
-  node: ts.Node;
-  /**
-   * AST-дерево файла
-   */
-  sourceFile: ts.SourceFile;
-  /**
-   * Ссылки на интерфейсы и типы из AST дерева файла
-   */
-  types: Types;
-  /**
-   * Аккумулятор значений, полученных в результате обработки определения типов
-   */
-  accumulator: Record<string, any>;
-};
 
 /**
  * Обработать определение типов
@@ -49,7 +24,7 @@ export const aliasDeclarationProcessing = ({
   types,
   accumulator,
   aliasName,
-}: AliasDeclarationProcessingParams) => {
+}: CommonDeclarationProcessingParams) => {
   if (aliasName) {
     accumulator[aliasName] = {};
     accumulator = accumulator[aliasName];

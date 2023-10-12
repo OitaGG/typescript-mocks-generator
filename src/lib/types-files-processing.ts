@@ -1,9 +1,10 @@
 import ts from 'typescript';
 
-import { FileTuple, Types } from '../types';
+import { FileTuple, Types } from '@root/types';
+
 import { aliasDeclarationProcessing } from './declaration-processing/alias-declaration-processing';
 import { enumDeclarationProcessing } from './declaration-processing/enum-declaration-processing';
-import { writeMocks } from './write-mocks';
+import { writeMocks } from './utils/write-mocks';
 
 /**
  * Параметры хелпера для преобразования файлов типов в файлы-генераторы этих типов
@@ -29,34 +30,41 @@ export const typesFilesProcessing = ({ files }: TypesFilesProcessingParams) => {
     // Собираем определения типов для конкретного файла
     const types = collectTypes(sourceFile);
 
-    // Проходимся по всем определениям типов
+    // Проходимся по всем определениям типов/энамов
     ts.forEachChild(sourceFile, (node) => {
-      if (node.kind === ts.SyntaxKind.EnumDeclaration) {
-        const enumDeclaration = node as ts.EnumDeclaration;
+      switch (node.kind) {
+        // Если встретили в файле определения Enum'а
+        case ts.SyntaxKind.EnumDeclaration: {
+          const enumDeclaration = node as ts.EnumDeclaration;
 
-        enumDeclarationProcessing({
-          aliasName: enumDeclaration?.name?.text,
-          node: enumDeclaration,
-          sourceFile,
-          types,
-          accumulator: sourceFileInfo,
-        });
+          enumDeclarationProcessing({
+            aliasName: enumDeclaration?.name?.text,
+            node: enumDeclaration,
+            sourceFile,
+            types,
+            accumulator: sourceFileInfo,
+          });
+
+          break;
+        }
+        // Если встретили в файле определения типа
+        case ts.SyntaxKind.TypeAliasDeclaration: {
+          const aliasDeclaration = node as ts.TypeAliasDeclaration;
+
+          aliasDeclarationProcessing({
+            aliasName: aliasDeclaration?.name?.text,
+            node: aliasDeclaration?.type,
+            sourceFile,
+            types,
+            accumulator: sourceFileInfo,
+          });
+
+          break;
+        }
+        // TODO: В файле проходимся только по определению типа/энаму, этот момент ломает гибкость решения
+        default:
+          break;
       }
-
-      // TODO: В файле проходимся только по определению типа, этот момент ломает гибкость решения, когда в файле к примеру могут быть type и enum
-      if (node.kind !== ts.SyntaxKind.TypeAliasDeclaration) {
-        return;
-      }
-
-      const aliasDeclaration = node as ts.TypeAliasDeclaration;
-
-      aliasDeclarationProcessing({
-        aliasName: aliasDeclaration?.name?.text,
-        node: aliasDeclaration?.type,
-        sourceFile,
-        types,
-        accumulator: sourceFileInfo,
-      });
     });
 
     writeMocks({ sourceFileInfo, sourceFile });
