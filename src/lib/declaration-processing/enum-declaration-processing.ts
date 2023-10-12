@@ -11,9 +11,5 @@ export const enumDeclarationProcessing = ({
   types,
   node,
 }: CommonDeclarationProcessingParams) => {
-  const cache = {};
-
-  processEnumProperty({ accumulator: cache, propertyName: 'enum', types, typeName: aliasName! });
-
-  console.log(cache);
+  processEnumProperty({ accumulator, propertyName: 'enum', types, typeName: aliasName! });
 };

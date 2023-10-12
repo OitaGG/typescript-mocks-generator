@@ -1,6 +1,8 @@
 import ts from 'typescript';
 
-import { FileTuple, Types } from '@root/types';
+import { FileTuple, SourceFileInfo, TemplateFileTypes, Types } from '@root/types';
+
+import { getTemplatesFromFiles } from '@lib/utils/read-files';
 
 import { aliasDeclarationProcessing } from './declaration-processing/alias-declaration-processing';
 import { enumDeclarationProcessing } from './declaration-processing/enum-declaration-processing';
@@ -19,13 +21,15 @@ type TypesFilesProcessingParams = {
 /**
  * Преобразовать файлы типов в файлы-генераторы этих типов
  */
-export const typesFilesProcessing = ({ files }: TypesFilesProcessingParams) => {
+export const typesFilesProcessing = async ({ files }: TypesFilesProcessingParams) => {
+  const templates = await getTemplatesFromFiles();
+
   const sourcesFiles = files.map(([name, content]) =>
     ts.createSourceFile(name, content, ts.ScriptTarget.ES2015, true)
   );
 
   sourcesFiles.forEach((sourceFile) => {
-    const sourceFileInfo: Record<string, unknown> = {};
+    const sourceFileInfo: SourceFileInfo = {};
 
     // Собираем определения типов для конкретного файла
     const types = collectTypes(sourceFile);
@@ -36,6 +40,8 @@ export const typesFilesProcessing = ({ files }: TypesFilesProcessingParams) => {
         // Если встретили в файле определения Enum'а
         case ts.SyntaxKind.EnumDeclaration: {
           const enumDeclaration = node as ts.EnumDeclaration;
+          sourceFileInfo._$fileType = TemplateFileTypes.ENUM_DECLARATION;
+          sourceFileInfo._$fileName = enumDeclaration?.name?.text;
 
           enumDeclarationProcessing({
             aliasName: enumDeclaration?.name?.text,
@@ -47,9 +53,12 @@ export const typesFilesProcessing = ({ files }: TypesFilesProcessingParams) => {
 
           break;
         }
+
         // Если встретили в файле определения типа
         case ts.SyntaxKind.TypeAliasDeclaration: {
           const aliasDeclaration = node as ts.TypeAliasDeclaration;
+          sourceFileInfo._$fileType = TemplateFileTypes.TYPE_DECLARATION;
+          sourceFileInfo._$fileName = aliasDeclaration?.name?.text;
 
           aliasDeclarationProcessing({
             aliasName: aliasDeclaration?.name?.text,
@@ -59,6 +68,8 @@ export const typesFilesProcessing = ({ files }: TypesFilesProcessingParams) => {
             accumulator: sourceFileInfo,
           });
 
+          console.log(sourceFileInfo);
+
           break;
         }
         // TODO: В файле проходимся только по определению типа/энаму, этот момент ломает гибкость решения
@@ -67,7 +78,7 @@ export const typesFilesProcessing = ({ files }: TypesFilesProcessingParams) => {
       }
     });
 
-    writeMocks({ sourceFileInfo, sourceFile });
+    writeMocks({ sourceFileInfo, sourceFile, templates });
   });
 
   return null;

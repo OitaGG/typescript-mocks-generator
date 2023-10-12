@@ -31,8 +31,15 @@ export const aliasDeclarationProcessing = ({
   }
 
   // Пересечение типов через оператор &
-  if (ts.isIntersectionTypeNode(node)) {
-    node.types.forEach((type) => {
+  if (
+    ts.isIntersectionTypeNode(node) ||
+    (ts.isParenthesizedTypeNode(node) && ts.isIntersectionTypeNode(node.type))
+  ) {
+    const intersectionNode = ts.isIntersectionTypeNode(node)
+      ? node
+      : (node.type as ts.IntersectionTypeNode);
+
+    intersectionNode.types.forEach((type) => {
       if (ts.isTypeReferenceNode(type)) {
         accumulator._$intersections = accumulator._$intersections ?? [];
         accumulator._$intersections.push(

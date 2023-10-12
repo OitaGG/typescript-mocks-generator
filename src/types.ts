@@ -1,5 +1,47 @@
-import { SyntaxKind, Node, PropertySignature, JSDoc, Identifier, JSDocTag } from 'typescript';
+import { Identifier, JSDoc, JSDocTag, Node, PropertySignature, SyntaxKind } from 'typescript';
+
+import { SUPPORTED_JSDOC_TAG_NAMES } from './constants';
+
 export type FileTuple = [string, string];
+
+/**
+ * Типы поддерживаемых файлов
+ */
+export enum TemplateFileTypes {
+  ENUM_DECLARATION = 'enumDeclaration.hbs',
+  TYPE_DECLARATION = 'typeDeclaration.hbs',
+}
+
+/**
+ * Информация о свойствах типа/enum'а в SourceFile
+ */
+export type SourceFileInfo = Record<string, TemplateFileTypes> & {
+  /**
+   * Тип файла
+   */
+  _$fileType?: TemplateFileTypes;
+  /**
+   * Имя файла
+   */
+  _$fileName?: string;
+};
+
+/**
+ * Определение типов для SourceFile
+ */
+export type Types = Record<string, TypeCacheRecord>;
+
+/**
+ * Нода свойства с определенным jsDoc'ом
+ */
+export interface NodeWithDocs extends PropertySignature {
+  jsDoc: JSDoc[];
+}
+
+/**
+ * Тип поддерживаемых JSDoc тэгов
+ */
+type SupportedJsDocTagName = (typeof SUPPORTED_JSDOC_TAG_NAMES)[number];
 
 type TypeCacheRecord = {
   kind: SyntaxKind;
@@ -7,23 +49,6 @@ type TypeCacheRecord = {
   node: Node;
 };
 
-export type Types = Record<string, TypeCacheRecord>;
-
-export interface NodeWithDocs extends PropertySignature {
-  jsDoc: JSDoc[];
-}
-
-export const SUPPORTED_JSDOC_TAGNAMES = ['mockType', 'mockRange'] as const;
-type SupportedJsDocTagName = (typeof SUPPORTED_JSDOC_TAGNAMES)[number];
-
 export interface SupportedJSDocTag extends JSDocTag {
   tagName: Identifier & { text: SupportedJsDocTagName };
-}
-
-declare global {
-  interface MOCKS_GENERATOR {
-    __MOCKS_GENERATOR_OPTIONS__: {
-      files: FileTuple[];
-    };
-  }
 }

@@ -59,9 +59,11 @@ export const generateFalsoArray = (mapper: unknown) =>
 export const defaultTypeToMock: {
   [index: number]: () => string | number | boolean | object;
 } = {
-  [ts.SyntaxKind.NumberKeyword]: () => `parseInt(falsoWrapper('randNumber') as string, 10)`,
+  [ts.SyntaxKind.NumberKeyword]: () => falsoWrapper('randNumber'),
   [ts.SyntaxKind.StringKeyword]: () => falsoWrapper('randText'),
   [ts.SyntaxKind.BooleanKeyword]: () => falsoWrapper('randBoolean'),
-  [ts.SyntaxKind.ObjectKeyword]: () => ({}),
-  [ts.SyntaxKind.AnyKeyword]: () => '',
+  // TODO: Сделать нормальную генерацию object
+  [ts.SyntaxKind.ObjectKeyword]: () => falsoWrapper('randText'),
+  // TODO: Сделать нормальную генерацию any
+  [ts.SyntaxKind.AnyKeyword]: () => falsoWrapper('randText'),
 };
