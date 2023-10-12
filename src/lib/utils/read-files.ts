@@ -1,8 +1,10 @@
+import appRootPath from 'app-root-path';
 import * as fs from 'fs';
+import Handlebars from 'handlebars';
 import { resolve } from 'path';
 import { promisify } from 'util';
 
-import { FileTuple } from '@root/types';
+import { FileTuple, TemplateFileTypes } from '@root/types';
 
 const asyncReadDir = promisify(fs.readdir);
 const asyncReadFile = promisify(fs.readFile);
@@ -37,3 +39,21 @@ export async function readFilesFromDirectory(path: string): Promise<FileTuple[]>
 
   return (await readFiles(path, filesNames)) as FileTuple[];
 }
+
+/**
+ * Получить handlebars шаблоны из файлов
+ */
+export const getTemplatesFromFiles = async () => {
+  const source = await readFilesFromDirectory(appRootPath.resolve('./src/templates'));
+
+  const templateFiles: Record<TemplateFileTypes, HandlebarsTemplateDelegate> = {} as Record<
+    TemplateFileTypes,
+    HandlebarsTemplateDelegate
+  >;
+
+  source.forEach(([name, fileBody]) => {
+    templateFiles[name as TemplateFileTypes] = Handlebars.compile(fileBody);
+  });
+
+  return templateFiles;
+};

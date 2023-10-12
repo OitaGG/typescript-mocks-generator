@@ -96,8 +96,6 @@ export const processPropertyTypeReference = ({
       accumulator[propertyName] = isArray
         ? `$generator${normalizedTypeName}.generateCollection()`
         : `$generator${normalizedTypeName}.generateOne()`;
-      accumulator._$imports = accumulator._$imports ?? [];
-      accumulator._$imports.push(normalizedTypeName);
       break;
     // Обрабатываем все остальные typeReference
     default:

@@ -1,5 +1,7 @@
 import ts from 'typescript';
-import { NodeWithDocs, SUPPORTED_JSDOC_TAGNAMES, SupportedJSDocTag } from './types';
+
+import { SUPPORTED_JSDOC_TAG_NAMES } from './constants';
+import { NodeWithDocs, SupportedJSDocTag } from './types';
 
 /**
  * Узел содержит jsDocs свойство
@@ -15,5 +17,5 @@ export const isNodeWithJSDoc = (node: ts.Node): node is NodeWithDocs =>
  * @param {JSDocTag} tag JSDoc тег
  */
 export const isSupportedJSDocTag = (tag: ts.JSDocTag): tag is SupportedJSDocTag => {
-  return (SUPPORTED_JSDOC_TAGNAMES as readonly string[]).includes(tag.tagName.text);
+  return (SUPPORTED_JSDOC_TAG_NAMES as readonly string[]).includes(tag.tagName.text);
 };

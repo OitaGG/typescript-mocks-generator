@@ -1,6 +1,6 @@
 import ts from 'typescript';
 
-import { supportedPrimitiveTypes } from '@root/constants';
+import { SUPPORTED_PRIMITIVE_TYPES } from '@root/constants';
 import { Types } from '@root/types';
 
 import { randomRange } from '@lib/random';
@@ -97,7 +97,7 @@ export const processUnionPropertyType = ({
         );
         break;
       default:
-        if (supportedPrimitiveTypes[node.kind]) {
+        if (SUPPORTED_PRIMITIVE_TYPES[node.kind]) {
           innerAccumulator[`primitive_${index}`] = node.getText();
 
           return;

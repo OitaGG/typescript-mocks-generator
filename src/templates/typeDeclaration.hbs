@@ -15,6 +15,13 @@ import type { {{{typeFileName}}} } from '{{{pathToTypeFile}}}';
 
 // Моковый гененратор для {{{typeFileName}}}
 const generateOne = (body?: Partial<{{{typeFileName}}}>): {{{typeFileName}}} => ({
+{{#if intersections}}
+    // Указываем пересечения
+    {{#each intersections}}
+        ...$generator{{{this}}}.generateOne(),
+    {{/each}}
+{{/if}}
+// Основные свойства
 {{#each declarations}}
     {{{this.name}}}: {{{this.value}}},
 {{/each}}
