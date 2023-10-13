@@ -68,8 +68,6 @@ export const typesFilesProcessing = async ({ files }: TypesFilesProcessingParams
             accumulator: sourceFileInfo,
           });
 
-          console.log(sourceFileInfo);
-
           break;
         }
         // TODO: В файле проходимся только по определению типа/энаму, этот момент ломает гибкость решения
@@ -124,7 +122,6 @@ const collectTypes = (sourceFile: ts.SourceFile) => {
         node,
       };
     }
-
     ts.forEachChild(node, processNode);
   };
 

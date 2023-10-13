@@ -28,6 +28,10 @@ const generateOne = (body?: Partial<{{{typeFileName}}}>): {{{typeFileName}}} => 
 ...(body ? body : {})
 } as {{{typeFileName}}});
 
+// Множественный моковый гененратор для {{{typeFileName}}}
+const generateCollection = (amount: number = falso.randNumber({min: 1, max: 10})): Array<{{{typeFileName}}}> => (new Array(amount).map(generateOne)) as Array<{{{typeFileName}}}>
+
 export const generator = {
     generateOne,
+    generateCollection
 };

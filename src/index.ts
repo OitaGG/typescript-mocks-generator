@@ -1,5 +1,8 @@
 import { Command } from 'commander';
+import fs from 'fs';
 import 'module-alias/register';
+import { resolve } from 'path';
+import path from 'path';
 
 import { typesFilesProcessing } from '@lib/types-files-processing';
 import { readFilesFromDirectory } from '@lib/utils/read-files';
@@ -39,6 +42,20 @@ const options = program.opts();
  * @param {GenerateOptions} options опции генерации моков
  */
 export const mocksGenerator = async (options: GenerateOptions) => {
+  const { outputPath } = options;
+
+  // Собираем все импорты
+  const resolvedOutputPath = resolve(process.cwd(), outputPath);
+
+  // TODO: перенести выше, чтобы не использовать на каждый вызов writeMocks
+  if (!fs.existsSync(resolvedOutputPath)) {
+    fs.mkdirSync(resolvedOutputPath, { recursive: true });
+  } else {
+    for (const file of fs.readdirSync(resolvedOutputPath)) {
+      fs.unlinkSync(path.join(resolvedOutputPath, file));
+    }
+  }
+
   return readFilesFromDirectory(options.inputPath).then((files) => {
     // @ts-ignore
     global.__MOCKS_GENERATOR_OPTIONS__ = {

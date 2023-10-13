@@ -1,7 +1,34 @@
 import ts from 'typescript';
 
 import { isSupportedJSDocTag } from '@root/guards';
-import { SupportedJSDocTag } from '@root/types';
+import { NodeWithDocs, SupportedJSDocTag } from '@root/types';
+
+import { generatePrimitive } from '@lib/utils/falso-generators';
+
+/**
+ * Определить какой из методов @ngneat/falso подходит для свойства на основе его JSDoc
+ */
+export function processJsDocs(
+  node: NodeWithDocs,
+  accumulator: Record<string, any>,
+  property: string
+) {
+  const [tag] = findSupportedJSDocTags(node.jsDoc);
+  const tagValue = extractTagValue(tag);
+
+  switch (tag.tagName.text) {
+    case 'mockType':
+      accumulator[property] = generatePrimitive(node.kind, tagValue);
+      break;
+
+    case 'mockRange':
+      // TODO
+      break;
+
+    default:
+      throw new Error(`Unexpected tagName: ${tag.tagName.text}`);
+  }
+}
 
 /**
  * Найти mockType и mockRange JSDoc теги

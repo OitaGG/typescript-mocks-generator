@@ -1,6 +1,5 @@
 import ts from 'typescript';
 
-import { stringify } from '@root/helpers';
 import { Types } from '@root/types';
 
 import { generatePrimitive } from '@lib/utils/falso-generators';
@@ -8,10 +7,6 @@ import { generatePrimitive } from '@lib/utils/falso-generators';
 import { processPropertyTypeReference } from './process-type-reference-property-type';
 
 type ProcessFunctionPropertyTypeParams = {
-  /**
-   * Аккумулятор всех свойств
-   */
-  accumulator: Record<string, any>;
   /**
    * Узел AST-дерева файла - свойство определения типа
    */
@@ -37,8 +32,6 @@ type ProcessFunctionPropertyTypeParams = {
  */
 export const processFunctionPropertyType = ({
   node,
-  propertyName,
-  accumulator,
   sourceFile,
   types,
 }: ProcessFunctionPropertyTypeParams) => {
@@ -51,10 +44,8 @@ export const processFunctionPropertyType = ({
 
   switch (returnType.kind) {
     case ts.SyntaxKind.TypeReference:
-      const tempBody: Record<string, {}> = {};
-      processPropertyTypeReference({
+      const typeReferenceGenerator = processPropertyTypeReference({
         node,
-        accumulator: tempBody,
         types,
         sourceFile,
         propertyName: 'body',
@@ -62,12 +53,8 @@ export const processFunctionPropertyType = ({
         typeName: ((returnType as ts.TypeReferenceNode).typeName as ts.Identifier).text,
       });
 
-      body = `return ${stringify(tempBody['body'])}`;
-      break;
+      return `return ${typeReferenceGenerator}`;
     default:
-      body = `return ${JSON.stringify(generatePrimitive(returnType.kind))}`;
-      break;
+      return `return ${JSON.stringify(generatePrimitive(returnType.kind))}`;
   }
-
-  accumulator[propertyName] = new Function(args, body);
 };
