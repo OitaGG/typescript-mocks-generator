@@ -1,13 +1,15 @@
-import { PropertySignature, SyntaxKind } from 'typescript';
+import ts, { PropertySignature, SyntaxKind } from 'typescript';
+
+import { Types } from '@root/types';
 
 /**
  * Базовые свойства для хелперов преобразования свойств без jsDoc
  */
 export type CommonProcessPropertyParams = {
   /**
-   * Аккумулятор всех свойств
+   * Наименование root-типа для которого идет генерация
    */
-  accumulator: Record<string, any>;
+  rootTypeDeclarationName?: string;
   /**
    * Узел AST-дерева файла - свойство определения типа
    */
@@ -20,4 +22,17 @@ export type CommonProcessPropertyParams = {
    * Тип свойства
    */
   kind: SyntaxKind | null;
+  /**
+   * Тип свойства
+   * @example Array<Reference>
+   */
+  typeName: string;
+  /**
+   * AST-дерево файла
+   */
+  sourceFile: ts.SourceFile;
+  /**
+   * Ссылки на интерфейсы и типы из AST дерева файла
+   */
+  types: Types;
 };

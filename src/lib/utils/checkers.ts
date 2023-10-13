@@ -2,7 +2,7 @@ import ts from 'typescript';
 
 import { NodeWithDocs } from '@root/types';
 
-import { findSupportedJSDocTags } from './utils/js-doc-helpers';
+import { findSupportedJSDocTags } from './js-doc-helpers';
 
 /**
  * Содержит ли нода JSDoc поддерживаемые JSDoc комментариий

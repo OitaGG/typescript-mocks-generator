@@ -4,84 +4,60 @@ import { Types } from '@root/types';
 
 import { aliasDeclarationProcessing } from '@lib/declaration-processing/alias-declaration-processing';
 import { generateFalsoArray, generatePrimitive } from '@lib/utils/falso-generators';
+import { normilizeArrayTypeName } from '@lib/utils/types';
 
 import { processPropertyTypeReference } from './process-type-reference-property-type';
 import { CommonProcessPropertyParams } from './types';
-
-type ProcessArrayPropertyTypeParams = CommonProcessPropertyParams & {
-  /**
-   * Тип свойства
-   * @example Array<Reference>
-   */
-  typeName: string;
-  /**
-   * AST-дерево файла
-   */
-  sourceFile: ts.SourceFile;
-  /**
-   * Ссылки на интерфейсы и типы из AST дерева файла
-   */
-  types: Types;
-};
 
 /**
  * Преобразовать определение свойства типа "Массив" чего-либо
  */
 export const processArrayPropertyType = ({
-  accumulator,
   kind,
   node,
-  propertyName,
   typeName,
   sourceFile,
   types,
-}: ProcessArrayPropertyTypeParams) => {
-  typeName = typeName.replace('[', '').replace(']', '');
-  typeName = normalizeNamespaceTypeName(typeName);
-
-  const result = [];
+}: CommonProcessPropertyParams): string => {
+  const normalizedTypeName = normalizeNamespaceTypeName(normilizeArrayTypeName(typeName));
 
   if (ts.isArrayTypeNode(node)) {
     kind = (node as ts.ArrayTypeNode)?.elementType?.kind;
   } else if (ts.isTypeNode(node)) {
     kind = node.kind;
-  } else if ((node.type as ts.ArrayTypeNode).elementType) {
+  } else if ((node.type as ts.ArrayTypeNode)?.elementType) {
     kind = (node.type as ts.ArrayTypeNode).elementType.kind;
   }
-
-  const isPrimitiveType =
-    kind === ts.SyntaxKind.StringKeyword ||
-    kind === ts.SyntaxKind.BooleanKeyword ||
-    kind === ts.SyntaxKind.NumberKeyword;
 
   switch (kind) {
     // Если массив является примитивом - просто заполняем его генерируемыми данными
     case ts.SyntaxKind.StringKeyword:
     case ts.SyntaxKind.BooleanKeyword:
     case ts.SyntaxKind.NumberKeyword:
-      accumulator[propertyName] = generateFalsoArray(generatePrimitive(kind!));
-      break;
+      return generateFalsoArray(generatePrimitive(kind!));
     case ts.SyntaxKind.TypeReference: {
-      const innerAccumulator: Record<string, unknown> = {};
-      processPropertyTypeReference({
+      const typeReferenceGenerator = processPropertyTypeReference({
         node,
-        accumulator: innerAccumulator,
         types,
         sourceFile,
         propertyName: 'body',
         kind,
-        typeName,
+        typeName: normalizedTypeName,
       });
 
       // TODO: сделать так, чтобы генерировалась generateCollection
-      accumulator[propertyName] = generateFalsoArray(innerAccumulator['body']);
-
-      break;
+      return generateFalsoArray(typeReferenceGenerator);
     }
     default: {
       const innerAccumulator = {};
-      processFile({ sourceFile, types, accumulator: innerAccumulator, typeName });
-      accumulator[propertyName] = generateFalsoArray(innerAccumulator);
+      processFile({
+        sourceFile,
+        types,
+        accumulator: innerAccumulator,
+        typeName: normalizedTypeName,
+      });
+
+      return generateFalsoArray(innerAccumulator);
     }
   }
 };

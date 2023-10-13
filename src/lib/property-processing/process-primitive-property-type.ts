@@ -5,21 +5,15 @@ import { generatePrimitive } from '@lib/utils/falso-generators';
 import { CommonProcessPropertyParams } from './types';
 
 /**
- * Преобразовать свойство, для которого не указан JSDoc
+ * Преобразовать примитивное свойство, для которого не указан JSDoc
  */
-export const processGenericPropertyType = ({
-  accumulator,
-  node,
-  propertyName,
-  kind,
-}: CommonProcessPropertyParams) => {
+export const processPrimitivePropertyType = ({ node, kind }: CommonProcessPropertyParams) => {
   // Если тип литерал - просто возвращаем сам литерал
   if (node && node.type && ts.isLiteralTypeNode(node.type)) {
-    accumulator[propertyName] = getLiteralTypeValue(node.type as ts.LiteralTypeNode);
-    return;
+    return getLiteralTypeValue(node.type as ts.LiteralTypeNode);
   }
 
-  accumulator[propertyName] = generatePrimitive(kind!);
+  return generatePrimitive(kind!);
 };
 
 /**

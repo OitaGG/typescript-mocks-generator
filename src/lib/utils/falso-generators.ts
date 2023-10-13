@@ -24,7 +24,7 @@ export const getLiteralTypeValue = (node: ts.LiteralTypeNode) => {
  * @param {SyntaxKind} primitiveType тип генерируемой переменной boolean|number|string
  * @param {string} mockType определения метода из @ngneat/falso для генерации значения, если его нет - берется тип переменной
  */
-export const generatePrimitive = (primitiveType: ts.SyntaxKind, mockType?: string) => {
+export const generatePrimitive = (primitiveType: ts.SyntaxKind, mockType?: string): string => {
   if (mockType) {
     return falsoWrapper(mockType);
   } else {
@@ -32,7 +32,7 @@ export const generatePrimitive = (primitiveType: ts.SyntaxKind, mockType?: strin
       throw Error(`Unsupported Primitive type ${primitiveType}`);
     }
 
-    return defaultTypeToMock[primitiveType]();
+    return defaultTypeToMock[primitiveType]() as string;
   }
 };
 

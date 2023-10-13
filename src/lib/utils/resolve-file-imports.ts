@@ -1,6 +1,8 @@
+import { basename } from 'path';
 import ts from 'typescript';
 
-import { basename } from 'path';
+import { removeFileExtensionFromPath } from '@lib/utils/string-helpers';
+
 /**
  * Информация об импорте
  */
@@ -30,13 +32,13 @@ export const collectImports = (sourceFile: ts.SourceFile) => {
           for (const importSpecifier of namedBindings.elements) {
             imports.push({
               aliasName: importSpecifier.name.text,
-              path: `./${basename(importSpecifier.name.text)}`,
+              path: removeFileExtensionFromPath(`./${basename(importSpecifier.name.text)}`),
             });
           }
         } else if (ts.isNamespaceImport(namedBindings)) {
           imports.push({
             aliasName: namedBindings.name.text,
-            path: `./${basename(namedBindings.name.text)}`,
+            path: removeFileExtensionFromPath(`./${basename(namedBindings.name.text)}`),
           });
         }
       }

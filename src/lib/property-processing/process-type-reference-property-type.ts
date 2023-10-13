@@ -1,31 +1,11 @@
 import ts from 'typescript';
 
-import { Types } from '@root/types';
+import { processArrayPropertyType } from '@lib/property-processing/process-array-property-type';
+import { processRecordPropertyType } from '@lib/property-processing/process-record-property-type';
+import { isArrayTypeName, isRecordTypeName, normilizeArrayTypeName } from '@lib/utils/types';
 
-import { generatePrimitive } from '@lib/utils/falso-generators';
-
-import { processArrayPropertyType, processFile } from './process-array-property-type';
 import { processEnumProperty } from './process-enum-property-type';
 import { CommonProcessPropertyParams } from './types';
-
-/**
- *
- */
-type ProcessPropertyTypeReferenceParams = CommonProcessPropertyParams & {
-  /**
-   * Тип свойства
-   * @example Array<Reference>
-   */
-  typeName: string;
-  /**
-   * AST-дерево файла
-   */
-  sourceFile: ts.SourceFile;
-  /**
-   * Ссылки на интерфейсы и типы из AST дерева файла
-   */
-  types: Types;
-};
 
 type TypeCacheRecord = {
   kind: ts.SyntaxKind;
@@ -34,132 +14,72 @@ type TypeCacheRecord = {
 };
 
 /**
- * Process an individual interface property.
+ * Обработать typeReference свойство
  */
 export const processPropertyTypeReference = ({
   node,
   propertyName,
   kind,
   typeName,
-  accumulator,
   types,
   sourceFile,
-}: ProcessPropertyTypeReferenceParams) => {
+}: CommonProcessPropertyParams): string => {
   let normalizedTypeName: string;
   let isArray = false;
-  const typeReference: ts.NodeWithTypeArguments | undefined = (node as unknown as ts.MappedTypeNode)
-    .type;
+  const typeReference = (node as unknown as ts.MappedTypeNode).type as ts.NodeWithTypeArguments;
 
-  // Преобразование массива referenc'ов, получаем только наименования reference
-  if (typeName.startsWith('Array<') || typeName.startsWith('IterableArray<')) {
-    isArray = true;
-    normalizedTypeName = typeName.replace(/(Array|IterableArray)\</, '').replace('>', '');
-  } else {
-    normalizedTypeName = typeName;
+  switch (true) {
+    // Record считается TypeReference - обрабатываем его отдельно
+    case isRecordTypeName(typeName):
+      return processRecordPropertyType({
+        typeName,
+        propertyName,
+        kind,
+        types,
+        sourceFile,
+        node,
+      });
+    //
+    case isArrayTypeName(typeName):
+      return processArrayPropertyType({
+        typeName,
+        propertyName,
+        kind,
+        types,
+        sourceFile,
+        node: types[normilizeArrayTypeName(typeName)] as unknown as ts.PropertySignature,
+      });
+    default:
+      normalizedTypeName = typeName;
   }
 
   // Преобразование generic
-  if (!isArray && !!typeReference?.typeArguments?.length) {
+  if (!!typeReference?.typeArguments?.length) {
     normalizedTypeName = ((typeReference as ts.TypeReferenceNode).typeName as ts.Identifier)
       .escapedText as string;
   }
 
-  // TODO: Handle other generics
-  if (normalizedTypeName !== typeName && isArray) {
-    processArrayPropertyType({
-      node,
-      propertyName,
-      kind,
-      typeName: normalizedTypeName,
-      accumulator,
-      types,
-      sourceFile,
-    });
-
-    return;
-  }
-
   if (!types[normalizedTypeName]) {
-    throw new Error(
-      `Type '${normalizedTypeName}' is not specified in the provided files but is required for property: '${propertyName}'. Please include it.`
-    );
+    const error = `Type '${normalizedTypeName}' is not specified in the provided files but is required for property: '${propertyName}'. Please include it. File - ${sourceFile.fileName}`;
+
+    throw new Error(error);
   }
 
   switch ((types[normalizedTypeName] as TypeCacheRecord).kind) {
     // Обрабатываем локальные enum'ы
     case ts.SyntaxKind.EnumDeclaration:
-      processEnumProperty({ accumulator, types, typeName: normalizedTypeName, propertyName });
-      break;
+      return processEnumProperty({ types, typeName: normalizedTypeName });
     // Обрабатываем typeReference из другого файла - достаточно взять просто генератор (generateOne или generateMany)
     case ts.SyntaxKind.ImportSpecifier:
     case ts.SyntaxKind.ExportSpecifier:
-      accumulator[propertyName] = isArray
-        ? `$generator${normalizedTypeName}.generateCollection()`
+      return isArray
+        ? `$generator${normalizedTypeName}.generateCollection(falso.randNumber({min: 0, max: 10}))`
         : `$generator${normalizedTypeName}.generateOne()`;
-      break;
-    // Обрабатываем все остальные typeReference
+    // Обрабатываем определения типов не из иморта, типы объявленные локально
+    case ts.SyntaxKind.TypeAliasDeclaration:
+      return 'generateOne()';
     default:
-      const record = types[normalizedTypeName];
-
-      if (record.kind !== record.aliasedTo) {
-        const alias = record.aliasedTo;
-        const isPrimitiveType =
-          alias === ts.SyntaxKind.StringKeyword ||
-          alias === ts.SyntaxKind.NumberKeyword ||
-          alias === ts.SyntaxKind.BooleanKeyword;
-
-        if (isPrimitiveType) {
-          accumulator[propertyName] = generatePrimitive(alias);
-        } else if (alias === ts.SyntaxKind.UnionType) {
-          let parameters: string[] = [];
-
-          if (record && record.node) {
-            const typeParameters = (record.node as ts.TypeAliasDeclaration).typeParameters;
-
-            if (typeParameters) {
-              parameters = typeParameters.map((value) => value.name.escapedText as string);
-            }
-
-            const updatedArr = (
-              (record.node as ts.TypeAliasDeclaration).type as ts.UnionOrIntersectionTypeNode
-            ).types.map((t) => {
-              const parameterIndex = (t as ts.TypeReferenceNode).typeName
-                ? parameters.indexOf(
-                    ((t as ts.TypeReferenceNode).typeName as ts.Identifier).escapedText as string
-                  )
-                : -1;
-              if (parameterIndex > -1) {
-                const propertyType: ts.NodeWithTypeArguments | undefined = (
-                  node as ts.PropertySignature
-                ).type;
-                if (propertyType && propertyType.typeArguments) {
-                  return propertyType.typeArguments[parameterIndex];
-                }
-              }
-              return t;
-            });
-            //     (
-            //       (record.node as ts.TypeAliasDeclaration).type as ts.UnionOrIntersectionTypeNode
-            //     ).types = updatedArr as unknown as ts.NodeArray<ts.TypeNode>;
-            //     processUnionPropertyType(
-            //       record.node as ts.PropertySignature,
-            //       output,
-            //       property,
-            //       typeName,
-            //       record.kind,
-            //       sourceFile,
-            //       options,
-            //       types
-            //     );
-          }
-          //       } else if (alias === ts.SyntaxKind.TypeLiteral) {
-          //         output[property] = {};
-          //         processFile(sourceFile, output[property], options, types, typeName);
-        } else {
-          accumulator[propertyName] = {};
-          processFile({ sourceFile, types, accumulator: accumulator[propertyName], typeName });
-          break;
-        }
-      }
+      // TODO:
+      throw new Error('Unknown TypeReference kind');
   }
 };

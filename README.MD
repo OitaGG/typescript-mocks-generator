@@ -2,6 +2,7 @@
 
 [![MIT License][license-shield]][license-url]
 
+
 <!-- PROJECT HEADER -->
 <br />
 <div align="center">
@@ -15,13 +16,10 @@
 <details>
   <summary>Table of Contents</summary>
   <ol>
-    <li>
-      <a href="#about-the-project">About The Project</a>
-    </li>
-    <li>
-      <a href="#installation">Installation</a>
-    </li>
+    <li><a href="#about-the-project">About The Project</a></li>
+    <li><a href="#installation">Installation</a></li>
     <li><a href="#usage">Usage</a></li>
+    <li><a href="#limitations">Limitations</a></li>
     <li><a href="#roadmap">Roadmap</a></li>
   </ol>
 </details>
@@ -30,7 +28,42 @@
 
 ## About The Project
 
-TODO
+This solution is inspired by the efforts of the `intermock` library (https://github.com/google/intermock).
+
+```mermaid
+---
+title: Process
+---
+stateDiagram-v2
+    [*] --> TypeReference
+    [*] --> Union
+    [*] --> Primitive
+    [*] --> ArrayType
+    [*] --> FunctionType: not implemented
+    [*] --> Tuple: not implemented
+
+    TypeReference --> Import/Export
+    TypeReference --> RecordType
+    TypeReference --> Enum
+    RecordType --> TypeReference
+    RecordType --> ArrayType
+    RecordType --> Enum
+    RecordType --> Primitive
+    ArrayType --> Primitive
+    ArrayType --> TypeReference
+    ArrayType --> Enum
+    Enum --> Import/Export
+    Union --> TypeReference
+    Union --> Primitive
+    Union --> ArrayType
+    Union --> Enum
+
+    FunctionType --> [*]
+    TypeReference --> [*]
+    Primitive --> [*]
+    Import/Export --> [*]
+```
+
 
 ### Installation
 
@@ -41,6 +74,13 @@ TODO
 ## Usage
 
 TODO
+
+<!-- LIMITATIONS -->
+
+## Limitations
+
+TODO
+
 
 <!-- ROADMAP -->
 

@@ -1,9 +1,13 @@
 import { writeFile } from 'fs';
+import * as fs from 'fs';
 import { basename, relative, resolve } from 'path';
+import * as path from 'path';
 import prettier from 'prettier';
 import ts from 'typescript';
 
 import { SourceFileInfo, TemplateFileTypes } from '@root/types';
+
+import { removeFileExtensionFromPath } from '@lib/utils/string-helpers';
 
 import { collectImports } from './resolve-file-imports';
 
@@ -39,17 +43,27 @@ export const writeMocks = async ({ sourceFileInfo, sourceFile, templates }: Writ
   const resolvedOutputPath = resolve(process.cwd(), outputPath);
   const resolvedInputPath = resolve(process.cwd(), inputPath);
   const outputFile = resolve(resolvedOutputPath, basename(sourceFile.fileName));
+  const pathToRootFile = removeFileExtensionFromPath(
+    `${relative(resolvedOutputPath, resolvedInputPath)}/${basename(sourceFile.fileName)}`
+  );
+
+  // TODO: перенести выше, чтобы не использовать на каждый вызов writeMocks
+  if (fs.existsSync(resolvedOutputPath)) {
+    fs.mkdirSync(resolvedOutputPath, { recursive: true });
+  } else {
+    for (const file of fs.readdirSync(resolvedOutputPath)) {
+      fs.unlinkSync(path.join(resolvedOutputPath, file));
+    }
+  }
 
   const res = templates?.[sourceFileInfo._$fileType!]?.({
     // Информация об импортах
     hasImports: !!imports.length,
     generatorsImports: [...imports],
     typeFileName: sourceFileInfo._$fileName,
-    pathToTypeFile: `${relative(resolvedOutputPath, resolvedInputPath)}/${basename(
-      sourceFile.fileName
-    )}`,
+    pathToTypeFile: pathToRootFile,
     // @ts-ignore
-    intersections: sourceFileInfo[_$fileName!]?._$intersections,
+    intersections: sourceFileInfo[_$fileName!]?._$intersections?.map((i) => i.split('.')[0]),
     declarations: getTemplateTypeProperties(sourceFileInfo),
   });
 
@@ -61,8 +75,6 @@ export const writeMocks = async ({ sourceFileInfo, sourceFile, templates }: Writ
     err && console.error(err);
   });
 };
-
-// @ts-ignore
 
 /**
  * Получить определения свойств для генератора

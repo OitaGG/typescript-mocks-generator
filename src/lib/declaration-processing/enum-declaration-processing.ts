@@ -5,11 +5,9 @@ import { processEnumProperty } from '@lib/property-processing/process-enum-prope
  * Обработать определение Enum, встретившееся нам в файле
  */
 export const enumDeclarationProcessing = ({
-  accumulator,
-  sourceFile,
   aliasName,
   types,
-  node,
+  accumulator,
 }: CommonDeclarationProcessingParams) => {
-  processEnumProperty({ accumulator, propertyName: 'enum', types, typeName: aliasName! });
+  accumulator.enum = processEnumProperty({ types, typeName: aliasName! });
 };

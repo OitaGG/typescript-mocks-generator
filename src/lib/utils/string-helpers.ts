@@ -49,3 +49,10 @@ export function stringify(obj: object) {
 
   return json + ';';
 }
+
+/**
+ * Удалить расширение типа для файла
+ *
+ * @param {string} path путь
+ */
+export const removeFileExtensionFromPath = (path: string) => path.replace(/\.[^/.]+$/, '');

@@ -1,9 +1,9 @@
+import falso from '@ngneat/falso';
 import ts from 'typescript';
 
 import { SUPPORTED_PRIMITIVE_TYPES } from '@root/constants';
 import { Types } from '@root/types';
 
-import { randomRange } from '@lib/random';
 import { getFalsoRandomArrayItem, getLiteralTypeValue } from '@lib/utils/falso-generators';
 
 import { processArrayPropertyType } from './process-array-property-type';
@@ -11,27 +11,12 @@ import { processFunctionPropertyType } from './process-function-property-type';
 import { processPropertyTypeReference } from './process-type-reference-property-type';
 import { CommonProcessPropertyParams } from './types';
 
-type ProcessUnionPropertyTypeParams = CommonProcessPropertyParams & {
-  /**
-   * Тип свойства
-   * @example Array<Reference>
-   */
-  typeName: string;
-  /**
-   * AST-дерево файла
-   */
-  sourceFile: ts.SourceFile;
-  /**
-   * Ссылки на интерфейсы и типы из AST дерева файла
-   */
-  types: Types;
-};
+type ProcessUnionPropertyTypeParams = CommonProcessPropertyParams;
 
 /**
  * Обработать union тип свойства
  */
 export const processUnionPropertyType = ({
-  accumulator,
   node,
   propertyName,
   types,
@@ -48,9 +33,8 @@ export const processUnionPropertyType = ({
   unionNodes.forEach((node, index) => {
     switch (node.kind) {
       case ts.SyntaxKind.TypeReference:
-        processPropertyTypeReference({
+        return processPropertyTypeReference({
           node: node as unknown as ts.PropertySignature,
-          accumulator: innerAccumulator,
           propertyName: `${propertyName}_${index}`,
           kind: node.kind,
           // @ts-ignore
@@ -58,12 +42,10 @@ export const processUnionPropertyType = ({
           types,
           sourceFile,
         });
-        break;
       case ts.SyntaxKind.ArrayType:
-        processArrayPropertyType({
+        return processArrayPropertyType({
           node: node as unknown as ts.PropertySignature,
           propertyName: `${propertyName}_${index}`,
-          accumulator: innerAccumulator,
           kind: node.kind,
           // @ts-ignore
           typeName: `${((node.elementType as ts.TypeReferenceNode)?.typeName as ts.Identifier)
@@ -71,16 +53,13 @@ export const processUnionPropertyType = ({
           sourceFile,
           types,
         });
-        break;
       case ts.SyntaxKind.FunctionType:
-        processFunctionPropertyType({
+        return processFunctionPropertyType({
           node: node as unknown as ts.PropertySignature,
-          accumulator,
           propertyName,
           sourceFile,
           types,
         });
-        break;
       case ts.SyntaxKind.IndexedAccessType:
         // processIndexedAccessPropertyType(
         //   indexedAccessNode as ts.IndexedAccessTypeNode,
@@ -89,13 +68,10 @@ export const processUnionPropertyType = ({
         //   options,
         //   types
         // );
-        break;
+        return undefined;
       case ts.SyntaxKind.LiteralType:
-        const literalIndex = randomRange(0, unionNodes.length - 1);
-        accumulator[propertyName] = getLiteralTypeValue(
-          unionNodes[literalIndex] as ts.LiteralTypeNode
-        );
-        break;
+        const literalIndex = falso.randNumber({ min: 0, max: unionNodes.length - 1 });
+        return getLiteralTypeValue(unionNodes[literalIndex] as ts.LiteralTypeNode);
       default:
         if (SUPPORTED_PRIMITIVE_TYPES[node.kind]) {
           innerAccumulator[`primitive_${index}`] = node.getText();
@@ -107,5 +83,5 @@ export const processUnionPropertyType = ({
     }
   });
 
-  accumulator[propertyName] = getFalsoRandomArrayItem(Object.values(innerAccumulator));
+  return getFalsoRandomArrayItem(Object.values(innerAccumulator));
 };

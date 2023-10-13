@@ -7,6 +7,11 @@ import type { {{{typeFileName}}} } from '{{{pathToTypeFile}}}';
 // Моковый гененратор для {{{typeFileName}}}
 const generateOne = (): {{{typeFileName}}} => ({{{declarations}}} as {{{typeFileName}}});
 
+
+// Множественный моковый гененратор для {{{typeFileName}}}
+const generateCollection = (amount: number = falso.randNumber({min: 1, max: 10})): Array<{{{typeFileName}}}> => (new Array(amount).map(generateOne)) as Array<{{{typeFileName}}}>;
+
 export const generator = {
-generateOne,
+    generateOne,
+    generateCollection
 };
